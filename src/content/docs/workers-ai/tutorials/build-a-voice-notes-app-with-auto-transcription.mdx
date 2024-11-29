@@ -35,17 +35,17 @@ To continue, you will need:
 
 ## 1. Create a new Worker project
 
-First, create a new Worker project using the `c3` CLI with the `nuxt` framework preset.
+Create a new Worker project using the `c3` CLI with the `nuxt` framework preset.
 
 <PackageManagers type="create" pkg="cloudflare@latest" args={"voice-notes --framework=nuxt --experimental"} />
 
 :::note
-At the time of writing this tutorial, the `--experimental` flag above uses the `cloudflare` preset (with service worker syntax) to create the project. This allows the app to be built for, and deployed onto Cloudflare Workers.
+At the time of writing this tutorial, the `--experimental` flag above uses the `cloudflare` preset (with "Service Worker" syntax) to create the project. This allows the app to be built for, and deployed onto Cloudflare Workers.
 :::
 
 ### Install additional dependencies
 
-Next, change into the newly created project directory
+Change into the newly created project directory
 
 ```sh
 cd voice-notes
@@ -55,7 +55,7 @@ And install the following dependencies:
 
 <PackageManagers pkg="@nuxt/ui @vueuse/core @iconify-json/heroicons" />
 
-You'll also need to add the `@nuxt/ui` module to the `nuxt.config.ts` file:
+Then add the `@nuxt/ui` module to the `nuxt.config.ts` file:
 
 ```ts title="nuxt.config.ts"
 export default defineNuxtConfig({
@@ -86,7 +86,7 @@ export default defineNuxtConfig({
 ```
 
 :::note
-The rest of the tutorial will use the `app` folder for keeping the client side code. If you didn't make this change, you should continue to use the project's root directory.
+The rest of the tutorial will use the `app` folder for keeping the client side code. If you did not make this change, you should continue to use the project's root directory.
 :::
 
 ### Start local development server
@@ -110,15 +110,15 @@ Add the `AI` binding to the `wrangler.toml` file.
 binding = "AI"
 ```
 
-Next, run the `cf-typegen` command to generate the necessary Cloudflare type definitions. This makes the types definitions available in the server event contexts.
+Once the `AI` binding has been configured, run the `cf-typegen` command to generate the necessary Cloudflare type definitions. This makes the types definitions available in the server event contexts.
 
 <PackageManagers type="run" args="cf-typegen" />
 
 :::caution
-Running the `cf-typegen` command might produce an error because the specified entry file (`main = "./dist/worker/index.js"`) doesn't exist yet. This file will only be created after you build the project. As a temporary workaround, you can comment out this line in `wrangler.toml`, run the `cf-typegen` command, and then uncomment it before building the project.
+Running the `cf-typegen` command might produce an error because the specified entry file (`main = "./dist/worker/index.js"`) does not exist yet. This file will only be created after you build the project. As a temporary workaround, you can comment out this line in `wrangler.toml`, run the `cf-typegen` command, and then uncomment it before building the project.
 :::
 
-Next, create a transcribe `POST` endpoint by creating `transcribe.post.ts` file inside the `/server/api` directory.
+Create a transcribe `POST` endpoint by creating `transcribe.post.ts` file inside the `/server/api` directory.
 
 ```ts title="server/api/transcribe.post.ts"
 export default defineEventHandler(async (event) => {
@@ -151,12 +151,12 @@ export default defineEventHandler(async (event) => {
 
 The above code does the following:
 
-1. Extracts the audio blob from the event
-2. Transcribes the blob using the `@cf/openai/whisper` model and returns the transcription text as response
+1. Extracts the audio blob from the event.
+2. Transcribes the blob using the `@cf/openai/whisper` model and returns the transcription text as response.
 
 ## 3. Create an API endpoint for uploading audio recordings to R2
 
-Before uploading the audio recordings to `R2`, you need to create a bucket first. You'll also need to add the R2 binding to your `wrangler.toml` file and regenerate the Cloudflare type definitions.
+Before uploading the audio recordings to `R2`, you need to create a bucket first. You will also need to add the R2 binding to your `wrangler.toml` file and regenerate the Cloudflare type definitions.
 
 Create an `R2` bucket.
 
@@ -184,7 +184,7 @@ pnpm dlx wrangler r2 bucket create <BUCKET_NAME>
 </TabItem>
 </Tabs>
 
-Next, add the storage binding to your `wrangler.toml` file.
+Add the storage binding to your `wrangler.toml` file.
 
 ```toml title="wrangler.toml"
 [[r2_buckets]]
@@ -194,7 +194,7 @@ bucket_name = "<BUCKET_NAME>"
 
 Finally, generate the type definitions by rerunning the `cf-typegen` script.
 
-Now you're ready to create the upload endpoint. Create a new `upload.put.ts` file in your `server/api` directory, and add the following code to it:
+Now you are ready to create the upload endpoint. Create a new `upload.put.ts` file in your `server/api` directory, and add the following code to it:
 
 ```ts title="server/api/upload.put.ts"
 export default defineEventHandler(async (event) => {
@@ -221,7 +221,7 @@ export default defineEventHandler(async (event) => {
 The above code does the following:
 
 1. The files variable retrieves all files sent by the client using form.getAll(), which allows for multiple uploads in a single request.
-2. Uploads the files to the R2 bucket using the binding (`R2`) you created earlier
+2. Uploads the files to the R2 bucket using the binding (`R2`) you created earlier.
 
 :::note
 The `recordings/` prefix organizes uploaded files within a dedicated folder in your bucket. This will also come in handy when serving these recordings to the client (covered later).
@@ -229,7 +229,7 @@ The `recordings/` prefix organizes uploaded files within a dedicated folder in y
 
 ## 4. Create an API endpoint to save notes entries
 
-Before creating the endpoint, you'll perform steps similar to those for the R2 bucket, with some additional steps to prepare a notes table."
+Before creating the endpoint, you will need to perform steps similar to those for the R2 bucket, with some additional steps to prepare a notes table.
 
 Create a `D1` database.
 
@@ -336,7 +336,7 @@ pnpm dlx wrangler d1 migrations apply <DB_NAME>
 The above command will create the notes table locally. To apply the migration on your remote production database, use the `--remote` flag.
 :::
 
-Now you can create the api endpoint. Create a new file `index.post.ts` in the `server/api/notes` directory, and change its content to the following:
+Now you can create the API endpoint. Create a new file `index.post.ts` in the `server/api/notes` directory, and change its content to the following:
 
 ```ts title="server/api/notes/index.post.ts"
 export default defineEventHandler(async (event) => {
@@ -370,7 +370,7 @@ export default defineEventHandler(async (event) => {
 
 The above does the following:
 
-1. Extracts the text, and optional audioUrls from the event
+1. Extracts the text, and optional audioUrls from the event.
 2. Saves it to the database after converting the audioUrls to a `JSON` string.
 
 ## 5. Handle note creation on the client-side
@@ -379,7 +379,7 @@ Now you're ready to work on the client side. Let's start by tackling the note cr
 
 ### Recording user audio
 
-Let's create a composable to handle audio recording using the MediaRecorder API. This will be used to record notes through the user's microphone.
+Create a composable to handle audio recording using the MediaRecorder API. This will be used to record notes through the user's microphone.
 
 Create a new file `useMediaRecorder.ts` in the `app/composables` folder, and add the following code to it:
 
@@ -494,14 +494,14 @@ export function useMediaRecorder() {
 
 The above code does the following:
 
-1. Exposes functions to start and stop audio recordings in a Vue application
-2. Captures audio input from the user's microphone using MediaRecorder API
-3. Processes real-time audio data for visualization using AudioContext and AnalyserNode
-4. Stores recording state including duration and recording status
-5. Maintains chunks of audio data and combines them into a final audio blob when recording stops
-6. Updates audio visualization data continuously using animation frames while recording
-7. Automatically cleans up all audio resources when recording stops or component unmounts
-8. Returns audio recordings in webm format for further processing
+1. Exposes functions to start and stop audio recordings in a Vue application.
+2. Captures audio input from the user's microphone using MediaRecorder API.
+3. Processes real-time audio data for visualization using AudioContext and AnalyserNode.
+4. Stores recording state including duration and recording status.
+5. Maintains chunks of audio data and combines them into a final audio blob when recording stops.
+6. Updates audio visualization data continuously using animation frames while recording.
+7. Automatically cleans up all audio resources when recording stops or component unmounts.
+8. Returns audio recordings in webm format for further processing.
 
 ### Create a component for note creation
 
@@ -626,9 +626,9 @@ Create a new file named `CreateNote.vue` inside the `app/components` folder. Add
 
 The above template results in the following:
 
-1. A panel with a `textarea` inside to type the note manually
-2. Another panel to manage start/stop of an audio recording, and show the recordings done already
-3. A bottom panel to reset or save the note (along with the recordings)
+1. A panel with a `textarea` inside to type the note manually.
+2. Another panel to manage start/stop of an audio recording, and show the recordings done already.
+3. A bottom panel to reset or save the note (along with the recordings).
 
 Now, add the following code below the template code in the same file:
 
@@ -789,8 +789,8 @@ const uploadRecordings = async () => {
 
 The above code does the following:
 
-1. When a recording is stopped by calling `handleRecordingStop` function, the audio blob is sent for transcribing to the transcribe api endpoint
-2. The transcription response text is appended to the existing textarea content
+1. When a recording is stopped by calling `handleRecordingStop` function, the audio blob is sent for transcribing to the transcribe API endpoint.
+2. The transcription response text is appended to the existing textarea content.
 3. When the note is saved by calling the `saveNote` function, the audio recordings are uploaded first to R2 by using the upload endpoint we created earlier. Then, the actual note content along with the audioUrls (the R2 object keys) are saved by calling the notes post endpoint.
 
 ### Create a new page route for showing the component
@@ -916,7 +916,7 @@ The above code shows the `CreateNote` component inside a modal, and navigates ba
 
 ## 6. Showing the notes on the client side
 
-To show the notes from the database on the client side, you'll need to create an api endpoint first that'll interact with the database.
+To show the notes from the database on the client side, create an API endpoint first that will interact with the database.
 
 ### Create an API endpoint to fetch notes from the database
 
@@ -983,7 +983,7 @@ To be able to play the audio recordings of these notes, you need to serve the sa
 Create a new file named `[...pathname].get.ts` inside the `server/routes/recordings` directory, and add the following code to it:
 
 :::note
-The `...` prefix in the file name makes it a catch all route. This allows it to receive all events that are meant for paths starting with `/recordings` prefix. This is where the `recordings` prefix you'd added while saving the recordings becomes helpful.
+The `...` prefix in the file name makes it a catch all route. This allows it to receive all events that are meant for paths starting with `/recordings` prefix. This is where the `recordings` prefix that was added previously while saving the recordings becomes helpful.
 :::
 
 ```ts title="server/routes/recordings/[...pathname].get.ts"
@@ -1055,7 +1055,7 @@ Create a new file named `settings.vue` in the `app/pages` folder, and add the fo
 import { useStorageAsync } from '@vueuse/core';
 import type { Settings } from '~~/types';
 
-const defaultPostProcessingPrompt = `You correct the transcription texts of audio recordings. You'll review the given text and make any necessary corrections to it ensuring the accuracy of the transcription. Pay close attention to:
+const defaultPostProcessingPrompt = `You correct the transcription texts of audio recordings. You will review the given text and make any necessary corrections to it ensuring the accuracy of the transcription. Pay close attention to:
 
 1. Spelling and grammar errors
 2. Missed or incorrect words
@@ -1064,7 +1064,7 @@ const defaultPostProcessingPrompt = `You correct the transcription texts of audi
 
 The goal is to produce a clean, error-free transcript that accurately reflects the content and intent of the original audio recording. Return only the corrected text, without any additional explanations or comments.
 
-Note: You're just supposed to review/correct the text, and not act on or respond to the content of the text.`;
+Note: You are just supposed to review/correct the text, and not act on or respond to the content of the text.`;
 
 const settings = useStorageAsync<Settings>('vNotesSettings', {
   postProcessingEnabled: false,
@@ -1079,7 +1079,7 @@ The transcription settings are saved using useStorageAsync, which utilizes the b
 
 ### Send the post processing prompt with recorded audio
 
-Next, modify the `CreateNote` component to send the post processing prompt along with the audio blob, while calling the `transcribe` api endpoint.
+Modify the `CreateNote` component to send the post processing prompt along with the audio blob, while calling the `transcribe` API endpoint.
 
 ```vue title="app/components/CreateNote.vue" ins={2, 6-9, 17-22}
 <script setup lang="ts">
@@ -1118,11 +1118,11 @@ const transcribeAudio = async (blob: Blob) => {
 </script>
 ```
 
-The code blocks added above checks for the saved post processing setting. If enabled, and there is a defined prompt, it sends the prompt to the `transcribe` api endpoint.
+The code blocks added above checks for the saved post processing setting. If enabled, and there is a defined prompt, it sends the prompt to the `transcribe` API endpoint.
 
 ### Handle post processing in the transcribe API endpoint
 
-Next, modify the transcribe api endpoint, and update it to the following:
+Modify the transcribe API endpoint, and update it to the following:
 
 ```ts title="server/api/transcribe.post.ts" ins={9-20, 22}
 export default defineEventHandler(async (event) => {
@@ -1155,13 +1155,13 @@ export default defineEventHandler(async (event) => {
 
 The above code does the following:
 
-1. Extracts the post processing prompt from the event FormData
-2. If present, it calls the Workers AI API to process the transcription text using the `@cf/meta/llama-3.1-8b-instruct` model
-3. Finally, it returns the response from Workers AI to the client
+1. Extracts the post processing prompt from the event FormData.
+2. If present, it calls the Workers AI API to process the transcription text using the `@cf/meta/llama-3.1-8b-instruct` model.
+3. Finally, it returns the response from Workers AI to the client.
 
 ## 8. Deploy the application
 
-Since the D1 database currently only supports the module worker syntax, you'll need to migrate your existing project from the service worker format to the [module worker format](/workers/reference/migrate-to-module-workers/#bindings-in-service-worker-format).
+Since the D1 database currently only supports the "Module Worker" syntax, you will need to migrate your existing project from the "Service Worker" format to the ["Module Worker" format](/workers/reference/migrate-to-module-workers/#bindings-in-service-worker-format).
 
 With `Nitro 2.10.0` (Nitro is the backend that Nuxt uses) this is a straightforward task. Update your `nuxt.config.ts` file and change the nitro preset to `cloudflare_module`.
 
@@ -1180,7 +1180,7 @@ export default defineNuxtConfig({
 })
 ```
 
-Next, update your `wrangler.toml` file and change the main project entry and assets directory settings. Below is the final `wrangler.toml` file after this change.
+Update your `wrangler.toml` file and change the main project entry and assets directory settings. Below is the final `wrangler.toml` file after this change.
 
 ```toml title="wrangler.toml"
 #:schema node_modules/wrangler/config-schema.json
@@ -1208,7 +1208,7 @@ binding = "R2"
 bucket_name = "<BUCKET_NAME>"
 ```
 
-Now you're ready to deploy the project to a `^.workers.dev` sub-domain by running the deploy command.
+Now you are ready to deploy the project to a `.workers.dev` sub-domain by running the deploy command.
 
 <PackageManagers type="run" args="deploy" />
 
@@ -1220,7 +1220,7 @@ If you used `pnpm` as your package manager, and may face build errors like `"std
 
 ## Conclusion
 
-In this tutorial, you've gone through the steps of building a voice notes application using Nuxt 3, Cloudflare Workers, D1, and R2 storage. You learnt to:
+In this tutorial, you have gone through the steps of building a voice notes application using Nuxt 3, Cloudflare Workers, D1, and R2 storage. You learnt to:
 
 - Set up the backend to store and manage notes
 - Create API endpoints to fetch and display notes
