@@ -39,10 +39,6 @@ Create a new Worker project using the `c3` CLI with the `nuxt` framework preset.
 
 <PackageManagers type="create" pkg="cloudflare@latest" args={"voice-notes --framework=nuxt --experimental"} />
 
-:::note
-At the time of writing this tutorial, the `--experimental` flag above uses the `cloudflare` preset (with "Service Worker" syntax) to create the project. This allows the app to be built for, and deployed onto Cloudflare Workers.
-:::
-
 ### Install additional dependencies
 
 Change into the newly created project directory
@@ -69,7 +65,7 @@ export default defineNuxtConfig({
 
 ### [Optional] Move to Nuxt 4 compatibility mode
 
-Moving to compatibility mode ensures that your application remains forward-compatible with upcoming updates to Nuxt.
+Moving to Nuxt 4 compatibility mode ensures that your application remains forward-compatible with upcoming updates to Nuxt.
 
 Create a new `app` folder in the project's root directory and move the `app.vue` file to it. Also, add the following to your `nuxt.config.ts` file:
 
@@ -113,10 +109,6 @@ binding = "AI"
 Once the `AI` binding has been configured, run the `cf-typegen` command to generate the necessary Cloudflare type definitions. This makes the types definitions available in the server event contexts.
 
 <PackageManagers type="run" args="cf-typegen" />
-
-:::caution
-Running the `cf-typegen` command might produce an error because the specified entry file (`main = "./dist/worker/index.js"`) does not exist yet. This file will only be created after you build the project. As a temporary workaround, you can comment out this line in `wrangler.toml`, run the `cf-typegen` command, and then uncomment it before building the project.
-:::
 
 Create a transcribe `POST` endpoint by creating `transcribe.post.ts` file inside the `/server/api` directory.
 
@@ -1161,53 +1153,6 @@ The above code does the following:
 
 ## 8. Deploy the application
 
-Since the D1 database currently only supports the "Module Worker" syntax, you will need to migrate your existing project from the "Service Worker" format to the ["Module Worker" format](/workers/reference/migrate-to-module-workers/#bindings-in-service-worker-format).
-
-With `Nitro 2.10.0` (Nitro is the backend that Nuxt uses) this is a straightforward task. Update your `nuxt.config.ts` file and change the nitro preset to `cloudflare_module`.
-
-```ts title="nuxt.config.ts" del={7} ins={8} {2}
-export default defineNuxtConfig({
-  compatibilityDate: '2024-09-19', // must be this date, or after
-
-  // ...
-
-  nitro: {
-    preset: "./cloudflare-preset"
-    preset: 'cloudflare_module',
-  },
-
-  // ...
-})
-```
-
-Update your `wrangler.toml` file and change the main project entry and assets directory settings. Below is the final `wrangler.toml` file after this change.
-
-```toml title="wrangler.toml"
-#:schema node_modules/wrangler/config-schema.json
-name = "voice-notes"
-compatibility_date = "2024-11-06"
-main = "./.output/server/index.mjs"
-assets = { directory = "./.output/public/", binding = "ASSETS" }
-
-# Workers Logs
-# Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
-# Configuration: https://developers.cloudflare.com/workers/observability/logs/workers-logs/#enable-workers-logs
-[observability]
-enabled = true
-
-[ai]
-binding = "AI"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "<DB_NAME>"
-database_id = "<DB_ID>"
-
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "<BUCKET_NAME>"
-```
-
 Now you are ready to deploy the project to a `.workers.dev` sub-domain by running the deploy command.
 
 <PackageManagers type="run" args="deploy" />
@@ -1215,7 +1160,7 @@ Now you are ready to deploy the project to a `.workers.dev` sub-domain by runnin
 You can preview your application at `<YOUR_WORKER>.<YOUR_SUBDOMAIN>.workers.dev`.
 
 :::note
-If you used `pnpm` as your package manager, and may face build errors like `"stdin" is not exported by "node_modules/.pnpm/unenv@1.10.0/node_modules/unenv/runtime/node/process/index.mjs"`. To resolve it, you can try hoisting your node modules with the [`shamefully-hoist-true`](https://pnpm.io/npmrc) option.
+If you used `pnpm` as your package manager, you may face build errors like `"stdin" is not exported by "node_modules/.pnpm/unenv@1.10.0/node_modules/unenv/runtime/node/process/index.mjs"`. To resolve it, you can try hoisting your node modules with the [`shamefully-hoist-true`](https://pnpm.io/npmrc) option.
 :::
 
 ## Conclusion
